@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Arquivos</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <script src="/js/jquery-3.6.4.min.js"></script>
+  <script src="/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="css/bootstrap-icons.min.css">
+</head>
+
+<body>
+
+  <div class="container mt-5">
+    <h2>Arquivos</h2>
+
+    <h2>Upload</h2>
+
+    <form action="upload.php" method="post" enctype="multipart/form-data">
+      <div class="form-group">
+        <input type="file" name="file">
+        <select name="folder" id="folder-content-list">
+        </select>
+        <input type="submit" value="Upload" class="btn btn-primary mb-2">
+      </div>
+
+    </form>
+    <div id="folder-content-container"></div>
+  </div>
+  <script>
+    $(document).ready(function () {
+      // URL to your PHP script that returns folder content as JSON
+      var apiUrl = 'index.php';
+
+      // Make an AJAX request to get the JSON data
+      $.getJSON(apiUrl, function (data) {
+        // Call the function to render the folder content
+        var list = renderFolderContent(data.files);
+        var select = renderFolderName(data.files);
+        $('#folder-content-container').html(list);
+        $('#folder-content-list').html(select);
+        $('#folder-content-list').prepend("<option value=\"uploads\">uploads/</option>");
+      });
+
+      // Recursive function to render folder content
+      function renderFolderContent(content) {
+       
+        //var list = "<ul>";
+        var list = "<table class=\"table\"><tbody>"
+
+        content.sort(function (a, b) { return a.name.localeCompare(b.name) });
+        // Iterate through the content
+        $.each(content, function (index, item) {
+          //list += '<li id=\'item'+index+'\'>' 
+          list += "<tr><td>"
+
+          // If it's a folder, create a sublist
+          if (item.folder) {
+            list += "<i class=\"bi bi-folder2\"></i> " + item.name;
+
+            list += renderFolderContent(item.files);
+          } else {
+            // If it's a file, display the filename
+            list += "<a target='_blank' href='" + item.path + "'> " + item.name + " </a>";
+          }
+          list += '</td></tr>';
+        });
+        list += "</tbody></table>";
+        return list;
+
+      }
+
+         // Recursive function to render folder content
+      function renderFolderName(content) {
+        var list = ""
+
+        content.sort(function (a, b) { return a.name.localeCompare(b.name) });
+        // Iterate through the content
+        $.each(content, function (index, item) {
+       
+
+          // If it's a folder, create a sublist
+          if (item.folder) {
+            var name = item.path.replace("./","");
+            list += "<option value="+name+"> " + name +"</option>";
+
+            list += renderFolderName(item.files);
+          } 
+         
+        });
+        
+        return list;
+
+      }
+    });
+  </script>
+</body>
+
+</html>
